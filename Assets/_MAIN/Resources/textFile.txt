@@ -1,0 +1,5 @@
+print_1p("This is a command running straight form our dialogue file!")
+
+John "Move Left and then right" [wait]moveCharDemo(left),moveCharDemo(right)
+
+John "(This is tought)"
