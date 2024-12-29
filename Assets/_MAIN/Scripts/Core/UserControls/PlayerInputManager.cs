@@ -19,6 +19,7 @@ namespace DIALOGUE
         }
     }
 
+    //menjalankan fungsi userprompt yang nantinya memengaruhi kecepatan dialogue
     public void PromptAdvance()
     {
         DialogueSystem.instance.OnUserPrompt_Next();

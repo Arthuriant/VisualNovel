@@ -4,10 +4,15 @@ using Unity.Mathematics;
 using UnityEngine;
 using COMMANDS;
 
+//testing ketika ingin membuat command
 namespace TESTING
 {
+
+//dibuat menjadi anakna dari database extension agar bisa di detect oleh command manager
 public class CMD_DatabaseExtension_Examples : CMD_DatabaseExtension
 {
+    //variable yang mengandung fungsi fungsi didalamnya
+    //menggunakan nama extend agar semua method dialamnya bisa diakses oleh command manager
     new public static void Extend(CommandDatabase database)
     {
         //add Action` with no parameters
@@ -27,6 +32,7 @@ public class CMD_DatabaseExtension_Examples : CMD_DatabaseExtension
         database.AddCommand("moveCharDemo", new Func<string, IEnumerator>(MoveCharacter));
     }
 
+    //perilaku dari setiap fungsinya ada dibawah sini
     private static void PrintDefaultMassage()
     {
         Debug.Log("Printing a default message to console.");

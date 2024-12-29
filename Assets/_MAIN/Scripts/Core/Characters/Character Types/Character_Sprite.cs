@@ -7,8 +7,10 @@ using UnityEngine.UI;
 
 namespace CHARACTERS
 { 
+//Untuk tipe character spritesheet
 public class Character_Sprite : Character
 {
+
     public override bool isVisible
     {   
         get {return isRevealing || RootCG.alpha == 1;}
@@ -17,25 +19,37 @@ public class Character_Sprite : Character
     private const string SPRITE_RENDERER_PARENT_NAME = "Renderers";
     private const string SPRITESHEET_DEFAULT_SHEETNAME = "Default";
     private const char SPRITESHEET_TEX_SPRITE_DELIMITER = '-';
+    //Dia bukan monobheaviour dan tidak di attach gimana caranya bisa get componenet?
+
     private CanvasGroup RootCG => root.GetComponent<CanvasGroup>();
+
+    //membuat sistem layers karakter
     public List<CharacterSpriteLayer> layers = new List<CharacterSpriteLayer>();
     private string artAssetDirectory = "";
     
+    //konstruktor dari character sprite yang berbasis dari induknya
      public Character_Sprite(string name,CharacterConfigData config, GameObject prefab, string rootAssetFolder) : base(name, config, prefab)
     {
+        //mengetahui status auto ditampilkana tau tidak
         RootCG.alpha = ENABLE_ON_START ? 1:0;
+        //root asset folder dari sprite
         artAssetDirectory = rootAssetFolder + "/Images";
+        //memanggil fungsi get layers
         getLayers();
         Debug.Log($"Create sprite character : '{name}'");
     }
 
+    //mengecheck root yang dibuat
     public void CekRoot()
     {
         Debug.Log(artAssetDirectory);
     }
 
+    //mendapatkan layers untuk sprtie
     private void getLayers()
     {
+
+        //mencari transform dari induk sprite renderernya
         Transform rendererRoot = animator.transform.Find(SPRITE_RENDERER_PARENT_NAME);
         if(rendererRoot == null)
         {
@@ -55,11 +69,13 @@ public class Character_Sprite : Character
         }
     }
 
+    //fungsi untuk menerapkan sprite baru ke character
     public void SetSprite(Sprite sprite, int layer = 0)
     {
         layers[layer].SetSprite(sprite);
     }
 
+    //fungsi untuk mendapatkan sprite baru dari folder
     public Sprite GetSprite(string spriteName)
     {
         if(config.characterType == CharacterType.SpriteSheet)
@@ -91,6 +107,7 @@ public class Character_Sprite : Character
         }
     }   
     
+    //fungsi untuk mengganti sprite dengan transisisi
     public Coroutine TransitionSprite (Sprite sprite, int layer = 0, float speed = 1)
     {
         CharacterSpriteLayer spriteLayer = layers[layer];
@@ -98,6 +115,7 @@ public class Character_Sprite : Character
         return spriteLayer.TransitionSprite(sprite,speed);
     }
 
+    //fungsi untuk menampilkan dan menghilankan sprite
         public override IEnumerator ShowingOrHiding(bool Show)
         {
             float targetAlpha = Show ? 1f : 0;
@@ -113,6 +131,7 @@ public class Character_Sprite : Character
             co_hiding = null;
         }
 
+        //fungsi untuk mengganti warna sprite
         public override void SetColor(Color color)
         {
         
@@ -125,6 +144,7 @@ public class Character_Sprite : Character
             }
         }
 
+        //Coroutine untuk mengganti warna sprite
         public override IEnumerator ChangingColor(Color color, float speed)
         {
             foreach(CharacterSpriteLayer layer in layers)
@@ -141,6 +161,7 @@ public class Character_Sprite : Character
             co_changingColor = null;
         }
 
+        //fungsu untuk higlighting sprite
         public override IEnumerator HighLighting(bool HighLight, float speedMultiplier)
         {
             Color targetColor = displayColor;
