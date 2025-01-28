@@ -12,8 +12,11 @@ namespace CHARACTERS
 public abstract class Character 
 {
     //inisialisasi variable
-    public const bool ENABLE_ON_START = true;
+    public const string ANIMATION_REFRESH_TRIGGER  = "Refresh";
+    public const bool ENABLE_ON_START = false;
     private const float UNIGHLIGHTED_DARKEN_STRENGHT = 0.65f;
+    public const bool DEFAULT_ORIENTATION_IS_FACING_LEFT = true;
+
     public string name = "";
     public string displayname = "";
     public RectTransform root = null;
@@ -25,6 +28,9 @@ public abstract class Character
     protected Color highlightedColor => color;
     protected Color unhighlightedColor => new Color(color.r* UNIGHLIGHTED_DARKEN_STRENGHT, color.g* UNIGHLIGHTED_DARKEN_STRENGHT, color.b * UNIGHLIGHTED_DARKEN_STRENGHT, color.a);
     public bool highlighted {get; protected set;} = true;
+    protected bool facingLeft = DEFAULT_ORIENTATION_IS_FACING_LEFT;
+    public int priority {get; protected set;}
+
 
     //pembuatan object untuk character manajer
     protected CharacterManager manager => CharacterManager.instance;
@@ -36,6 +42,7 @@ public abstract class Character
     protected Coroutine co_revealing, co_hiding;
     protected Coroutine co_moving;
     protected Coroutine co_highLighting;
+    protected Coroutine co_flipping;
 
     //boolean for coroutine
     public bool isRevealing => co_revealing != null;
@@ -45,6 +52,10 @@ public abstract class Character
     public bool isHighlighting => (highlighted && co_highLighting != null);
     public bool isUnHighLighting => (!highlighted && co_highLighting != null);
     public virtual bool isVisible {get; set;}
+    public bool isFacingLeft => facingLeft;
+    public bool isFacingRight => !facingLeft;
+    public bool isFlipping => co_flipping != null;
+
 
     //konstruktor dari character dimana membutuhkan nama,config, dan prefab
     public Character(string name, CharacterConfigData config, GameObject prefab)
@@ -289,6 +300,73 @@ public abstract class Character
     {
         Debug.Log("highlighting is not avaible on this character type!");
         yield return null;
+    }
+
+    public Coroutine Flip(float speed = 1, bool immediate = false )
+    {
+        if(isFacingLeft)
+            return FaceRight(speed,immediate);
+        else
+            return FaceLeft(speed,immediate);
+    }
+
+    public Coroutine FaceLeft(float speed = 1, bool immediate = false)
+    {
+        if(isFlipping)
+            manager.StopCoroutine(co_flipping);
+        
+        facingLeft = true;
+        co_flipping = manager.StartCoroutine(FaceDirection(facingLeft,speed,immediate));
+        return co_flipping;
+
+    }
+
+    public Coroutine FaceRight(float speed = 1, bool immediate = false)
+    {
+        if(isFlipping)
+            manager.StopCoroutine(co_flipping);
+        
+        facingLeft = false;
+        co_flipping = manager.StartCoroutine(FaceDirection(facingLeft,speed,immediate));
+        return co_flipping;
+    }
+
+    public virtual IEnumerator FaceDirection (bool FaceLeft, float speedMultiplier, bool immediate)
+    {
+        Debug.Log("Cannot flip a character with this type");
+        yield return null;
+    }
+
+    public void SetPriority(int priority, bool autoSortCharacterOnUI = true)
+    {
+        this.priority = priority;
+
+        if(autoSortCharacterOnUI)
+        {
+            manager.SortCharacters();
+        }
+
+    }
+
+    public void Animate(string animation)
+    {
+        animator.SetTrigger(animation);
+    }
+
+    public void Animate(string animation, bool state)
+    {
+        animator.SetBool(animation,state);
+        animator.SetTrigger(ANIMATION_REFRESH_TRIGGER);
+    }
+
+    public virtual void OnSort(int sortingIndex)
+    {
+        return;
+    }
+
+    public virtual void OnReceiveCastingExpression(int layer, string expression)
+    {
+        return;
     }
 
     //character type dari character

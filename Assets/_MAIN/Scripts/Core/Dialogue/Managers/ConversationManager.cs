@@ -4,6 +4,7 @@ using UnityEngine.Rendering;
 using System.Collections;
 using System.Runtime.InteropServices;
 using COMMANDS;
+using CHARACTERS;
 
 namespace DIALOGUE
 {
@@ -96,15 +97,38 @@ public class ConversationManager
         //jika line memiliki speaker maka
         if(line.hasSpeaker)
         {
-            //menampilkan displayname dari speaker
-            dialogueSystem.ShowSpeakerName(line.speakerData.displayname);
+            HandleSpeakerLogic(line.speakerData);
         }
 
         //dialogue dibuat
         yield return BuildLineSegments(line.dialogueData);
-  
 
+    }
 
+    private void HandleSpeakerLogic(DL_SPEAKER_DATA speakerData)
+    {
+            bool characterMustBeCreated = (speakerData.makeCharacterEnter || speakerData.isCastingPosition || speakerData.isCastingExpressions);
+            Character character = CharacterManager.instance.GetCharacter(speakerData.name, createIfDoesNotExist: characterMustBeCreated);
+            if(speakerData.makeCharacterEnter && (!character.isVisible && !character.isRevealing))
+            {
+                character.Show();
+            }
+            //menampilkan displayname dari speaker
+            dialogueSystem.ShowSpeakerName(speakerData.displayname);
+            DialogueSystem.instance.ApplySpeakerDataToDialogueContainer(speakerData.name);
+
+            if (speakerData.isCastingPosition)
+            {
+                character.MoveToPosition(speakerData.castPosition);
+            }
+
+            if(speakerData.isCastingExpressions)
+            {
+                foreach(var ce in speakerData.CastExpressions)
+                {
+                    character.OnReceiveCastingExpression(ce.layer,ce.expression);
+                }
+            }
     }
 
     //fungsi untuk menjalankan commands

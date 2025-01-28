@@ -179,6 +179,35 @@ public class Character_Sprite : Character
             co_highLighting = null;
 
         }
+
+        public override IEnumerator FaceDirection(bool FaceLeft, float speedMultiplier, bool immediate)
+        {
+            foreach(CharacterSpriteLayer layer in layers)
+            {
+                if(FaceLeft)
+                    layer.FaceLeft(speedMultiplier, immediate);
+                else
+                    layer.FaceRight(speedMultiplier, immediate);  
+            }
+            yield return null;
+
+            while(layers.Any(l => l.isFacingLeft))
+                yield return null;
+
+            co_flipping = null;  
+        }
+
+        public override void OnReceiveCastingExpression(int layer, string expression)
+        {
+            Debug.Log($"Layer: {layer}, Expression: {expression}");
+            Sprite sprite = GetSprite(expression);
+            if(sprite == null)
+            {
+                Debug.LogWarning($"Sprite '{expression} could not be found for character '{name}'");
+                return;
+            }
+            TransitionSprite(sprite,layer);
+        }
     }
 
 }

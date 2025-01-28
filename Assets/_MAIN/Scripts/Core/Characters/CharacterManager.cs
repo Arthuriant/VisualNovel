@@ -1,4 +1,5 @@
 using System.Collections.Generic; // Untuk menggunakan koleksi seperti Dictionary
+using System.Linq;
 using DIALOGUE; // Namespace khusus, mungkin untuk sistem dialog
 using Mono.Cecil; // Library eksternal, mungkin untuk manipulasi metadata
 using UnityEngine; // Untuk fungsi Unity
@@ -58,7 +59,7 @@ namespace CHARACTERS
         }
 
         // Membuat karakter baru berdasarkan nama
-        public Character CreateCharacter(string characterName)
+        public Character CreateCharacter(string characterName, bool revealAfterCreation = false)
         {
             if (characters.ContainsKey(characterName.ToLower()))
             {
@@ -69,7 +70,12 @@ namespace CHARACTERS
             CHARACTER_INFO info = GetCharacterInfo(characterName); // Ambil informasi karakter
             Character character = CreateCharacterFromInfo(info); // Buat karakter berdasarkan informasi
 
-            characters.Add(characterName.ToLower(), character); // Tambahkan ke dictionary
+            characters.Add(info.name.ToLower(), character); // Tambahkan ke dictionary
+
+            if(revealAfterCreation)
+            {
+                character.Show();
+            }
             return character;
         }
 
@@ -123,6 +129,52 @@ namespace CHARACTERS
             }
 
             return null; // Jika tipe karakter tidak dikenali
+        }
+
+        public void SortCharacters()
+        {
+            List<Character> activeCharacters = characters.Values.Where(c => c.root.gameObject.activeInHierarchy && c.isVisible).ToList();
+            List<Character> inactiveCharacters = characters.Values.Except(activeCharacters).ToList();
+
+            activeCharacters.Sort((a,b) => a.priority.CompareTo(b.priority));
+            activeCharacters.Concat(inactiveCharacters);
+            SortCharacters(activeCharacters);
+        }
+
+        private void SortCharacters(List<Character> characterSortingorder)
+        {
+            int i = 0;
+            foreach(Character character in characterSortingorder)
+            {
+                Debug.Log($"{character.name} : {character.priority}");
+                character.root.SetSiblingIndex(i++);
+            }
+        }
+
+        public void SortCharacters(string[] characterNames)
+        {
+            List<Character> sortedCharacters = new List<Character>();
+
+            sortedCharacters = characterNames
+            .Select(name => GetCharacter(name))
+            .Where(character => character != null)
+            .ToList();
+
+            List<Character> remainingCharacters = characters.Values
+            .Except(sortedCharacters)
+            .OrderBy(character => character.priority)
+            .ToList();
+
+            sortedCharacters.Reverse();
+            int startingPriority = remainingCharacters.Count > 0 ? remainingCharacters.Max(c => c.priority) : 0;
+            for (int i=0 ; i<sortedCharacters.Count;i++)
+            {
+                Character character = sortedCharacters[i];
+                character.SetPriority(startingPriority+i+1, autoSortCharacterOnUI: false);
+            }
+
+            List<Character> allCharacters = remainingCharacters.Concat(sortedCharacters).ToList();
+            SortCharacters(allCharacters);
         }
 
         // Kelas internal untuk menyimpan informasi karakter sementara

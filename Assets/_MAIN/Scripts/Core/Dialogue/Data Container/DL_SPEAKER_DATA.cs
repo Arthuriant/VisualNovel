@@ -12,8 +12,14 @@ public class DL_SPEAKER_DATA
 {
     //deklarasi variable
     public string name, castName;
-    public string displayname => (castName != string.Empty ? castName : name);
+    public string displayname => isCastingName ? castName : name;
+
+    public bool isCastingName => castName != string.Empty;
+    public bool isCastingPosition = false;
+    public bool isCastingExpressions => CastExpressions.Count>0;
     public Vector2 castPosition;
+    public bool makeCharacterEnter = false;
+    
     public List<(int layer, string expression)> CastExpressions {get;set;}
     private const string NAMECAST_ID = " as ";
     private const string POSITIONCAST_ID = " at ";
@@ -22,9 +28,23 @@ public class DL_SPEAKER_DATA
     private const char EXPRESSIONLAYER_JOINER = ',';
     private const char EXPRESSIONLAYER_DELIMITER = ':';
 
+    private const string ENTRER_KEYWORD = "enter ";
+
     //construcutor untuk class ini untuk mengetahui nama dari speaker
+
+    private string ProcessKeywords(string rawSpeaker)
+    {
+        if(rawSpeaker.StartsWith(ENTRER_KEYWORD))
+        {
+            rawSpeaker = rawSpeaker.Substring(ENTRER_KEYWORD.Length);
+            makeCharacterEnter = true;
+        }
+
+        return rawSpeaker;
+    }
     public DL_SPEAKER_DATA(string rawSpeaker)
     {
+        rawSpeaker = ProcessKeywords(rawSpeaker);
         //pattern dari text 
         string pattern = @$"{NAMECAST_ID}|{POSITIONCAST_ID}|{EXPRESSIONCAST_ID.Insert(EXPRESSIONCAST_ID.Length-1, @"\")}";
         //mencari kecocokan antara pattern dengan rawspeaker menggunakan regex
@@ -66,6 +86,7 @@ public class DL_SPEAKER_DATA
             //jika terdapat value potition cast
             else if( match.Value == POSITIONCAST_ID)
             {
+                isCastingPosition = true;
                 //mengetahui posisi dari castposition
                 startIndex = match.Index + POSITIONCAST_ID.Length;
                 endIndex = (i<matches.Count - 1) ? matches[i+1].Index : rawSpeaker.Length;
@@ -100,8 +121,11 @@ public class DL_SPEAKER_DATA
                     x => {
                         //x dipecah menjadi dua dengan kunci EXPRESSIONLAYER_DELIMITER dan hasilnya menjadi "1,layer 1,2,layer 2 didalam parts"
                         var parts = x.Trim().Split(EXPRESSIONLAYER_DELIMITER);
-                        //mengembalikan nilai untuk parts1 dan parts 2 dan dibuat menjadi bentuk list
-                        return(int.Parse(parts[0]), parts[1]);
+
+                        if(parts.Length ==2)
+                            return(int.Parse(parts[0]), parts[1]);
+                        else    
+                            return (0, parts[0]);
                     }).ToList();
             }
         }

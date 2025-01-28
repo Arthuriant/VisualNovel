@@ -1,5 +1,5 @@
-print_1p("This is a command running straight form our dialogue file!")
+enter Kolbi [B_Talking] "Hello Traveler!"
 
-John "Move Left and then right" [wait]moveCharDemo(left),moveCharDemo(right)
+enter Kolbi "May you help me?"
 
-John "(This is tought)"
+enter Generic "Hellow. {wa 0.5} oke"
